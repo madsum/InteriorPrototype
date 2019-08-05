@@ -5,14 +5,14 @@ import javax.xml.bind.annotation.XmlTransient;
 public class Feature {
 
     @XmlElement(name = "Code")
-    private int code;
+    private String code;
 
     @XmlTransient
-    public int getCode() {
+    public String getCode() {
         return code;
     }
 
-    public void setCode(int code) {
+    public void setCode(String code) {
         this.code = code;
     }
 

@@ -1,20 +1,17 @@
 package com.ma.volvo;
 
-import java.awt.List;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class DatabaseManager {
 
-	private String url = "jdbc:oracle:thin:@localhost:1521:XE";
-	private String user = "system";
-	private String pass = "dev";
+    private String url = "jdbc:oracle:thin:@GOTSVL2290.got.volvocars.net:1521:dpgccd";
+    private String user = "gcc_dbs_dev_admin";
+    private String pass = "gcc_dbs_dev_admin";
 	private static Connection conn;
 	long uniqeIndexErrorCode = 23000l;
 
@@ -25,10 +22,17 @@ public class DatabaseManager {
 								+ "(MASTER_ROOM_ID, DATA_ELEMENT,STATE,CODE, COMMON) " 
 								+ "VALUES( ?, ?, ?, ?, ? )";
 
-	private static final String SELECT_MASTER_AND_FEATURE = "SELECT * FROM INTERIOR_ROOMS_MASTER master "
+    private static final String SELECT_MASTER_AND_FEATURE_BY_PNO12 = "SELECT DATA_ELEMENT, STATE, CODE, COMMON FROM INTERIOR_ROOMS_MASTER master "
 								+ "JOIN INTERIOR_ROOMS_FEATURES feature on " 
 								+ "feature.master_room_id = master.room_id "
 								+ "WHERE master.pno12 = ?";
+
+    private static final String SELECT_MASTER_AND_FEATURE_BY_ALL = "SELECT DATA_ELEMENT, STATE, CODE, COMMON FROM INTERIOR_ROOMS_MASTER master "
+        + "JOIN INTERIOR_ROOMS_FEATURES feature on " + "feature.master_room_id = master.room_id " + "WHERE master.pno12 = ? AND "
+        + "master.str_week_from = ? AND " + "master.str_week_to = ? AND " + "master.color = ? AND " + "master.upholstery = ?";
+
+    private static final int ELEMENT_STANDARDFEATURE = 115;
+    private static final int ELEMENT_OPTION = 12;
 	
 	private final String ROOM_ID = "ROOM_ID";
 	private final String STR_WEEK_FROM = "STR_WEEK_FROM";
@@ -40,9 +44,15 @@ public class DatabaseManager {
 	private final String DATA_ELEMENT = "DATA_ELEMENT";
 	private final String STATE = "STATE";
 	private final String CODE = "CODE";
+    private final String COMMON = "COMMON";
 	
-	private String[] columnNames = {ROOM_ID, STR_WEEK_FROM, STR_WEEK_TO, PNO12, COLOR, UPHOLSTERY,  
-									MASTER_ROOM_ID, DATA_ELEMENT,STATE, CODE};  
+    private String[] allColumnNames = { ROOM_ID, STR_WEEK_FROM, STR_WEEK_TO, PNO12, COLOR, UPHOLSTERY,
+        MASTER_ROOM_ID, DATA_ELEMENT, STATE, CODE, COMMON };
+
+    private ArrayList<Feature> individualFearturs = new ArrayList<Feature>();
+    private ArrayList<Option> individualOptions = new ArrayList<Option>();
+    private ArrayList<Feature> commonFearturs = new ArrayList<Feature>();
+    private ArrayList<Option> commonOptions = new ArrayList<Option>();
 
 	public DatabaseManager() {
 		try {
@@ -116,15 +126,15 @@ public class DatabaseManager {
 		PreparedStatement pst = null;
 		ResultSet rset = null;
 		for (Feature feature : interiorResponse.getFeatureList()) {
-			retVal = insertFeatureData(masterId, feature.getCode(), null, "code unknown", "1");
+            retVal = insertFeatureData(masterId, ELEMENT_STANDARDFEATURE, null, feature.getCode(), "1");
 			System.out.println("Common feature insert: " + retVal);
 			if (retVal == -1l) {
 				System.out.println("Error when insert into INTERIOR_ROOMS_FEATURES check it. Handle error");
 			}
 		}
 
-		for (Integer option : interiorResponse.getOptionList()) {
-			retVal = insertFeatureData(masterId, option, null, "code unknown", "1");
+        for (String option : interiorResponse.getOptionList()) {
+            retVal = insertFeatureData(masterId, ELEMENT_OPTION, null, option, "1");
 			System.out.println("Common option insert: " + retVal);
 			if (retVal == -1l) {
 				System.out.println("Error when insert into INTERIOR_ROOMS_FEATURES check it. Handle error");
@@ -140,14 +150,14 @@ public class DatabaseManager {
 		long retVal = -1;
 		for (InteriorRoom interiorRoom : interiorResponse.getCuList()) {
 			for (Feature feature : interiorRoom.getFeatureList()) {
-				retVal = insertFeatureData(masterId, feature.getCode(), null, "code unknown", "0");
+                retVal = insertFeatureData(masterId, ELEMENT_STANDARDFEATURE, null, feature.getCode(), "0");
 				System.out.println("Individual feature insert : " + retVal);
 				if (retVal == -1l) {
 					System.out.println("Error when insert into INTERIOR_ROOMS_FEATURES check it. Handle error");
 				}
 			}
 			for (Option option : interiorRoom.getOptionList()) {
-				retVal = insertFeatureData(masterId, option.getCode(), option.getState(), "code unknown", "0");
+                retVal = insertFeatureData(masterId, ELEMENT_OPTION, option.getCode(), option.getState(), "0");
 				System.out.println("individual option insert: " + retVal);
 				if (retVal == -1l) {
 					System.out.println("Error when insert into INTERIOR_ROOMS_FEATURES check it. Handle error");
@@ -157,17 +167,17 @@ public class DatabaseManager {
 		return retVal;
 	}
 
-	private long insertFeatureData(long masterId, long dataElement, String state, String code, String common) {
+    private long insertFeatureData(long masterId, int dataElement, String state, String code, String common) {
 		long retVal = -1l;
 		PreparedStatement pst = null;
 		ResultSet rset = null;
 		try {
 			pst = conn.prepareStatement(INSERT_INTERIOR_ROOMS_FEATURES);
 			pst.setLong(1, masterId);
-			pst.setLong(2, dataElement);
-			pst.setString(3, null);
-			pst.setString(4, "code unknown");
-			pst.setString(5, "1");
+            pst.setInt(2, dataElement);
+            pst.setString(3, state);
+            pst.setString(4, code);
+            pst.setString(5, common);
 			rset = pst.executeQuery();
 			if (rset.next() == true) {
 				retVal = 1l;
@@ -186,40 +196,88 @@ public class DatabaseManager {
 	public ArrayList<String> getDataByPno12(String pno12) {
 		PreparedStatement pst = null;
 		ResultSet rset = null;
-		ArrayList<String> data = new ArrayList<String>();
-		Map<Integer, Map<String, String>> dataMap = new HashMap<Integer, Map<String, String>>();
-		int index = 0;
 		try {
-			pst = conn.prepareStatement(SELECT_MASTER_AND_FEATURE);
+            pst = conn.prepareStatement(SELECT_MASTER_AND_FEATURE_BY_PNO12);
 			pst.setString(1, pno12);
 			rset = pst.executeQuery();
-			while (rset.next()) {
-				Map<String, String> map = new HashMap<String, String>();
-				for (String col : columnNames) {
-			        String value = rset.getString(col);
-			        map.put(col, value);
-			        data.add(value);
-			    }
-			    dataMap.put(index, map);
-			    index++;
-			}
+            addDataInList(rset);
 		} catch (SQLException e) {
 			System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
 		} catch (Exception e) {
 			System.out.println("Exception when insert into INTERIOR_ROOMS_FEATURES");
 		}
-		for (String val : data) {
-			System.out.println("data : " + val);
-		}
-
-		for (Integer key : dataMap.keySet()) {
-			Map<String, String> map = dataMap.get(key);
-			for (String key2 : map.keySet()) {
-				System.out.println("key: " + key2 + " val: " + dataMap.get(key2));
-			}
-		}
-		return data;
+        return null;
 	}
+
+    public ArrayList<String> getDataByAll(String pno12, long str_week_from, long str_week_to, String color, String upholstery) {
+        PreparedStatement pst = null;
+        ResultSet rset = null;
+        try {
+            pst = conn.prepareStatement(SELECT_MASTER_AND_FEATURE_BY_ALL);
+            pst.setString(1, pno12);
+            pst.setLong(2, str_week_from);
+            pst.setLong(3, str_week_to);
+            pst.setString(4, color);
+            pst.setString(5, upholstery);
+
+            rset = pst.executeQuery();
+            addDataInList(rset);
+        } catch (SQLException e) {
+            System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Exception when insert into INTERIOR_ROOMS_FEATURES");
+        }
+        printData();
+        return null;
+    }
+
+    private void addDataInList(ResultSet rset) {
+        try {
+            while (rset.next()) {
+                if (rset.getLong(DATA_ELEMENT) == 115 && rset.getString(COMMON).equalsIgnoreCase("1")) {
+                    Feature feature = new Feature();
+                    feature.setCode(rset.getString(CODE));
+                    commonFearturs.add(feature);
+                } else if (rset.getLong(DATA_ELEMENT) == 12 && rset.getString(COMMON).equalsIgnoreCase("1")) {
+                    Option option = new Option();
+                    option.setCode(rset.getString(CODE));
+                    option.setState(rset.getString(STATE));
+                    commonOptions.add(option);
+                } else if (rset.getLong(DATA_ELEMENT) == 115 && rset.getString(COMMON).equalsIgnoreCase("0")) {
+                    Feature feature = new Feature();
+                    feature.setCode(rset.getString(CODE));
+                    individualFearturs.add(feature);
+                } else if (rset.getLong(DATA_ELEMENT) == 12 && rset.getString(COMMON).equalsIgnoreCase("0")) {
+                    Option option = new Option();
+                    option.setCode(rset.getString(CODE));
+                    option.setState(rset.getString(STATE));
+                    individualOptions.add(option);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Exception when insert into INTERIOR_ROOMS_FEATURES");
+        }
+        printData();
+    }
+
+    private void printData() {
+        for (Feature f : commonFearturs) {
+            System.out.println("common featuer code: " + f.getCode());
+        }
+        for (Option o : commonOptions) {
+            System.out.println("common optoin code: " + o.getCode());
+            System.out.println("common state : " + o.getState());
+        }
+        for (Feature f : individualFearturs) {
+            System.out.println("individual featuer code: " + f.getCode());
+        }
+        for (Option o : individualOptions) {
+            System.out.println("individual optoin code: " + o.getCode());
+            System.out.println("individual state : " + o.getState());
+        }
+    }
 
 	private Long convertErroCode(String error) {
 		long errorCode = -1;

@@ -8,13 +8,11 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
-	<classpathentry kind="lib" path="C:/practice/eclipse-volvo/InteriorProto/WebContent/WEB-INF/lib/ojdbc6.jar"/>
-	<classpathentry kind="lib" path="C:/practice/eclipse-volvo/InteriorProto/WebContent/WEB-INF/lib/jaxws-rt-2.1.3.jar"/>
-	<classpathentry kind="lib" path="C:/practice/eclipse-volvo/InteriorProto/WebContent/WEB-INF/lib/ojdbc5.jar"/>
-	<classpathentry kind="lib" path="C:/practice/eclipse-volvo/InteriorProto/WebContent/WEB-INF/lib/ons.jar"/>
-	<classpathentry kind="lib" path="C:/practice/eclipse-volvo/InteriorProto/WebContent/WEB-INF/lib/orai18n.jar"/>
-	<classpathentry kind="lib" path="C:/practice/eclipse-volvo/InteriorProto/WebContent/WEB-INF/lib/simplefan.jar"/>
-	<classpathentry kind="lib" path="C:/practice/eclipse-volvo/InteriorProto/WebContent/WEB-INF/lib/ucp.jar"/>
-	<classpathentry kind="lib" path="C:/practice/eclipse-volvo/InteriorProto/WebContent/WEB-INF/lib/xdb6.jar"/>
+	<classpathentry kind="src" path=".apt_generated">
+		<attributes>
+			<attribute name="optional" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/practice/eclipse_practice/Interior/WebContent/WEB-INF/lib/ojdbc6.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

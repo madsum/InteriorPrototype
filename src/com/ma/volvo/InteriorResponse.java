@@ -25,7 +25,7 @@ public class InteriorResponse {
 
     @XmlElementWrapper(name = "OptionList")
     @XmlElement(name = "Option")
-    private List<Integer> optionList;
+    private List<String> optionList;
 
     @XmlElementWrapper(name = "CUList")
     @XmlElement(name = "CU")
@@ -86,11 +86,11 @@ public class InteriorResponse {
     }
 
     @XmlTransient
-    public List<Integer> getOptionList() {
+    public List<String> getOptionList() {
         return optionList;
     }
 
-    public void setOptionList(List<Integer> optionList) {
+    public void setOptionList(List<String> optionList) {
         this.optionList = optionList;
     }
 

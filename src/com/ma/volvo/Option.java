@@ -5,16 +5,16 @@ import javax.xml.bind.annotation.XmlTransient;
 public class Option {
 
     @XmlElement(name = "Code")
-    private int code;
+    private String code;
     @XmlElement(name = "state")
     private String state;
 
     @XmlTransient
-    public int getCode() {
+    public String getCode() {
         return code;
     }
 
-    public void setCode(int code) {
+    public void setCode(String code) {
         this.code = code;
     }
 
