@@ -32,13 +32,19 @@ public class InteriorResponse {
     private List<InteriorRoom> cuList;
     
     @XmlTransient
+    private String color;
+    
+    @XmlTransient
+    private String upholstrey;
+/*    
+    @XmlTransient
     private List<ColorUpholstery> colorUpholsteryList;
     
     @XmlTransient
     private List<String> roomColorList;
     @XmlTransient
     private List<String> roomUpholsteryList; 
-
+*/
     public InteriorResponse() {
     }
 
@@ -102,7 +108,34 @@ public class InteriorResponse {
     public void setCuList(List<InteriorRoom> cuList) {
         this.cuList = cuList;
     }
+    
+    @XmlTransient
+	public String getColor() {
+		return color;
+	}
+
+	public void setColor(String color) {
+		this.color = color;
+	}
+	@XmlTransient
+	public String getUpholstrey() {
+		return upholstrey;
+	}
+
+	public void setUpholstrey(String upholstrey) {
+		this.upholstrey = upholstrey;
+	}
 	
+	public void setColorUpholstrey() {
+        if(!cuList.isEmpty()) {
+        	for (InteriorRoom colUph : cuList) {
+        		setColor(colUph.getColor()); 
+        		setUpholstrey(colUph.getUpholstery());
+        	}
+        }
+	}
+	
+	/*
 	public List<String> getRoomColorList() {
 		return roomColorList;
 	}
@@ -148,7 +181,7 @@ public class InteriorResponse {
 		ColorUpholstery colorUpholstery = new ColorUpholstery(roomColor, rooomUpholstery);
 		this.colorUpholsteryList.add(colorUpholstery);
 	}
-
+*/
 
 	@Override
     public String toString() {

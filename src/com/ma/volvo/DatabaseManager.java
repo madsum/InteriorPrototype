@@ -9,9 +9,14 @@ import java.util.ArrayList;
 
 public class DatabaseManager {
 
+	/*
     private String url = "jdbc:oracle:thin:@GOTSVL2290.got.volvocars.net:1521:dpgccd";
     private String user = "gcc_dbs_dev_admin";
     private String pass = "gcc_dbs_dev_admin";
+    */
+	private String url = "jdbc:oracle:thin:@localhost:1521:XE";
+	private String user = "system";
+	private String pass = "dev";
 	private static Connection conn;
 	long uniqeIndexErrorCode = 23000l;
 
@@ -53,6 +58,8 @@ public class DatabaseManager {
     private ArrayList<Option> individualOptions = new ArrayList<Option>();
     private ArrayList<Feature> commonFearturs = new ArrayList<Feature>();
     private ArrayList<Option> commonOptions = new ArrayList<Option>();
+	private ArrayList<String> data = new ArrayList<String>();
+
 
 	public DatabaseManager() {
 		try {
@@ -70,14 +77,12 @@ public class DatabaseManager {
 	public long insertData(InteriorResponse interiorResponse) {
 		long masterRetVal = -1l;
 		try {
-			for (ColorUpholstery colUph : interiorResponse.getColorUpholsteryList()) {
-				masterRetVal = insertIntoInteriorMaster(interiorResponse.getStartWeek(), interiorResponse.getEndWeek(),
-						interiorResponse.getPno12(), colUph.getColor(), colUph.getUpholstery());
+			masterRetVal = insertIntoInteriorMaster(interiorResponse.getStartWeek(), interiorResponse.getEndWeek(),
+					interiorResponse.getPno12(), interiorResponse.getColor(), interiorResponse.getUpholstrey());
 
-				System.out.println("Master insert primary key: " + masterRetVal);
-				if (masterRetVal == uniqeIndexErrorCode) {
-					System.out.println("This row already exit in the table. Handle error");
-				}
+			System.out.println("Master insert primary key: " + masterRetVal);
+			if (masterRetVal == uniqeIndexErrorCode) {
+				System.out.println("This row already exit in the table. Handle error");
 			}
 		} catch (Exception e) {
 			System.out.println("Error when doing  insert . Handle error " + e.getMessage());
@@ -86,7 +91,7 @@ public class DatabaseManager {
 		if (retVal == -1) {
 			System.out.println("Error to insert feature data");
 		}
-		retVal = insertIndividualFeature(interiorResponse, masterRetVal);
+		retVal = insertIndividualFeatureData(interiorResponse, masterRetVal);
 		if (retVal == -1) {
 			System.out.println("Error to insert individual data");
 		}
@@ -146,7 +151,7 @@ public class DatabaseManager {
 		return retVal;
 	}
 
-	public long insertIndividualFeature(InteriorResponse interiorResponse, long masterId) {
+	public long insertIndividualFeatureData(InteriorResponse interiorResponse, long masterId) {
 		long retVal = -1;
 		for (InteriorRoom interiorRoom : interiorResponse.getCuList()) {
 			for (Feature feature : interiorRoom.getFeatureList()) {
@@ -157,7 +162,7 @@ public class DatabaseManager {
 				}
 			}
 			for (Option option : interiorRoom.getOptionList()) {
-                retVal = insertFeatureData(masterId, ELEMENT_OPTION, option.getCode(), option.getState(), "0");
+                retVal = insertFeatureData(masterId, ELEMENT_OPTION, option.getState(), option.getCode(),  "0");
 				System.out.println("individual option insert: " + retVal);
 				if (retVal == -1l) {
 					System.out.println("Error when insert into INTERIOR_ROOMS_FEATURES check it. Handle error");
@@ -206,9 +211,9 @@ public class DatabaseManager {
 		} catch (Exception e) {
 			System.out.println("Exception when insert into INTERIOR_ROOMS_FEATURES");
 		}
-        return null;
+        return data;
 	}
-
+	
     public ArrayList<String> getDataByAll(String pno12, long str_week_from, long str_week_to, String color, String upholstery) {
         PreparedStatement pst = null;
         ResultSet rset = null;
@@ -228,7 +233,7 @@ public class DatabaseManager {
             System.out.println("Exception when insert into INTERIOR_ROOMS_FEATURES");
         }
         printData();
-        return null;
+        return data;
     }
 
     private void addDataInList(ResultSet rset) {
@@ -238,20 +243,25 @@ public class DatabaseManager {
                     Feature feature = new Feature();
                     feature.setCode(rset.getString(CODE));
                     commonFearturs.add(feature);
+                    data.add(rset.getString(CODE));
                 } else if (rset.getLong(DATA_ELEMENT) == 12 && rset.getString(COMMON).equalsIgnoreCase("1")) {
                     Option option = new Option();
                     option.setCode(rset.getString(CODE));
                     option.setState(rset.getString(STATE));
                     commonOptions.add(option);
+                    data.add(rset.getString(STATE));
                 } else if (rset.getLong(DATA_ELEMENT) == 115 && rset.getString(COMMON).equalsIgnoreCase("0")) {
                     Feature feature = new Feature();
                     feature.setCode(rset.getString(CODE));
                     individualFearturs.add(feature);
+                    data.add(rset.getString(CODE));
                 } else if (rset.getLong(DATA_ELEMENT) == 12 && rset.getString(COMMON).equalsIgnoreCase("0")) {
                     Option option = new Option();
                     option.setCode(rset.getString(CODE));
                     option.setState(rset.getString(STATE));
                     individualOptions.add(option);
+                    data.add(rset.getString(CODE));
+                    data.add(rset.getString(STATE));
                 }
             }
         } catch (SQLException e) {
@@ -275,9 +285,29 @@ public class DatabaseManager {
         }
         for (Option o : individualOptions) {
             System.out.println("individual optoin code: " + o.getCode());
-            System.out.println("individual state : " + o.getState());
+            System.out.println("individual optoin state : " + o.getState());
         }
     }
+    
+	public ArrayList<Feature> getIndividualFearturs() {
+		return individualFearturs;
+	}
+
+	public ArrayList<Option> getIndividualOptions() {
+		return individualOptions;
+	}
+
+	public ArrayList<Feature> getCommonFearturs() {
+		return commonFearturs;
+	}
+
+	public ArrayList<Option> getCommonOptions() {
+		return commonOptions;
+	}
+
+	public void setCommonOptions(ArrayList<Option> commonOptions) {
+		this.commonOptions = commonOptions;
+	}
 
 	private Long convertErroCode(String error) {
 		long errorCode = -1;

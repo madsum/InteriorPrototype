@@ -24,12 +24,8 @@ public class XmlUnmarshaller {
             jaxbContext = JAXBContext.newInstance(InteriorResponse.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             interiorResponse = (InteriorResponse) unmarshaller.unmarshal(file);
-            List<InteriorRoom> cuList = interiorResponse.getCuList();
-            if(!cuList.isEmpty()) {
-            	for (InteriorRoom colUph : cuList) {
-            		interiorResponse.addColorUpholstery(colUph.getColor(), colUph.getUpholstery());
-            	}
-            }
+            interiorResponse.setColorUpholstrey();
+
             printData();
         } catch (JAXBException e) {
             e.printStackTrace();

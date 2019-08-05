@@ -19,7 +19,7 @@ public class TestApp {
         // xmlUnmarshaller = new XmlUnmarshaller();
 		xmlUnmarshaller.UnmarshalXml();
         interiorResponse = xmlUnmarshaller.getInteriorResponse();
-        // insertIntoDB();
+        insertIntoDB();
         data = getDataByPno12(pno12);
         // data = getDataByAll(pno12, str_week_from, str_week_to, color, upholstery);
 	}
