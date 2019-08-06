@@ -9,14 +9,15 @@ import java.util.ArrayList;
 
 public class DatabaseManager {
 
-	/*
     private String url = "jdbc:oracle:thin:@GOTSVL2290.got.volvocars.net:1521:dpgccd";
     private String user = "gcc_dbs_dev_admin";
     private String pass = "gcc_dbs_dev_admin";
-    */
-	private String url = "jdbc:oracle:thin:@localhost:1521:XE";
-	private String user = "system";
-	private String pass = "dev";
+
+    /*
+     * private String url = "jdbc:oracle:thin:@localhost:1521:XE";
+     * private String user = "system";
+     * private String pass = "dev";
+     */
 	private static Connection conn;
 	long uniqeIndexErrorCode = 23000l;
 
@@ -54,12 +55,7 @@ public class DatabaseManager {
     private String[] allColumnNames = { ROOM_ID, STR_WEEK_FROM, STR_WEEK_TO, PNO12, COLOR, UPHOLSTERY,
         MASTER_ROOM_ID, DATA_ELEMENT, STATE, CODE, COMMON };
 
-    private ArrayList<Feature> individualFearturs = new ArrayList<Feature>();
-    private ArrayList<Option> individualOptions = new ArrayList<Option>();
-    private ArrayList<Feature> commonFearturs = new ArrayList<Feature>();
-    private ArrayList<Option> commonOptions = new ArrayList<Option>();
-	private ArrayList<String> data = new ArrayList<String>();
-
+    private FetaturesOptions featureOptoins = new FetaturesOptions();
 
 	public DatabaseManager() {
 		try {
@@ -198,7 +194,7 @@ public class DatabaseManager {
 	}
 
 
-	public ArrayList<String> getDataByPno12(String pno12) {
+    public FetaturesOptions getDataByPno12(String pno12) {
 		PreparedStatement pst = null;
 		ResultSet rset = null;
 		try {
@@ -211,10 +207,10 @@ public class DatabaseManager {
 		} catch (Exception e) {
 			System.out.println("Exception when insert into INTERIOR_ROOMS_FEATURES");
 		}
-        return data;
+        return featureOptoins;
 	}
 	
-    public ArrayList<String> getDataByAll(String pno12, long str_week_from, long str_week_to, String color, String upholstery) {
+    public FetaturesOptions getDataByAll(String pno12, long str_week_from, long str_week_to, String color, String upholstery) {
         PreparedStatement pst = null;
         ResultSet rset = null;
         try {
@@ -233,10 +229,16 @@ public class DatabaseManager {
             System.out.println("Exception when insert into INTERIOR_ROOMS_FEATURES");
         }
         printData();
-        return data;
+        return featureOptoins;
     }
 
     private void addDataInList(ResultSet rset) {
+        ArrayList<Feature> individualFearturs = new ArrayList<Feature>();
+        ArrayList<Option> individualOptions = new ArrayList<Option>();
+        ArrayList<Feature> commonFearturs = new ArrayList<Feature>();
+        ArrayList<Option> commonOptions = new ArrayList<Option>();
+        ArrayList<String> data = new ArrayList<String>();
+
         try {
             while (rset.next()) {
                 if (rset.getLong(DATA_ELEMENT) == 115 && rset.getString(COMMON).equalsIgnoreCase("1")) {
@@ -269,45 +271,37 @@ public class DatabaseManager {
         } catch (Exception e) {
             System.out.println("Exception when insert into INTERIOR_ROOMS_FEATURES");
         }
+        if (!individualFearturs.isEmpty()) {
+            featureOptoins.setIndividualFearturs(individualFearturs);
+        }
+        if (!individualOptions.isEmpty()) {
+            featureOptoins.setIndividualOptions(individualOptions);
+        }
+        if (!commonFearturs.isEmpty()) {
+            featureOptoins.setCommonFearturs(commonFearturs);
+        }
+        if (!commonOptions.isEmpty()) {
+            featureOptoins.setCommonOptions(commonOptions);
+        }
         printData();
     }
 
     private void printData() {
-        for (Feature f : commonFearturs) {
+        for (Feature f : featureOptoins.getCommonFearturs()) {
             System.out.println("common featuer code: " + f.getCode());
         }
-        for (Option o : commonOptions) {
+        for (Option o : featureOptoins.getCommonOptions()) {
             System.out.println("common optoin code: " + o.getCode());
             System.out.println("common state : " + o.getState());
         }
-        for (Feature f : individualFearturs) {
+        for (Feature f : featureOptoins.getIndividualFearturs()) {
             System.out.println("individual featuer code: " + f.getCode());
         }
-        for (Option o : individualOptions) {
+        for (Option o : featureOptoins.getIndividualOptions()) {
             System.out.println("individual optoin code: " + o.getCode());
             System.out.println("individual optoin state : " + o.getState());
         }
     }
-    
-	public ArrayList<Feature> getIndividualFearturs() {
-		return individualFearturs;
-	}
-
-	public ArrayList<Option> getIndividualOptions() {
-		return individualOptions;
-	}
-
-	public ArrayList<Feature> getCommonFearturs() {
-		return commonFearturs;
-	}
-
-	public ArrayList<Option> getCommonOptions() {
-		return commonOptions;
-	}
-
-	public void setCommonOptions(ArrayList<Option> commonOptions) {
-		this.commonOptions = commonOptions;
-	}
 
 	private Long convertErroCode(String error) {
 		long errorCode = -1;
@@ -318,4 +312,13 @@ public class DatabaseManager {
 		}
 		return errorCode;
 	}
+
+    public FetaturesOptions getFeatureOptoins() {
+        return featureOptoins;
+    }
+
+    public void setFeatureOptoins(FetaturesOptions featureOptoins) {
+        this.featureOptoins = featureOptoins;
+    }
+
 }

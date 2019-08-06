@@ -1,5 +1,4 @@
 package com.ma.volvo;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -36,15 +35,7 @@ public class InteriorResponse {
     
     @XmlTransient
     private String upholstrey;
-/*    
-    @XmlTransient
-    private List<ColorUpholstery> colorUpholsteryList;
-    
-    @XmlTransient
-    private List<String> roomColorList;
-    @XmlTransient
-    private List<String> roomUpholsteryList; 
-*/
+
     public InteriorResponse() {
     }
 
