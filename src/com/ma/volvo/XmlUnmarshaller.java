@@ -1,6 +1,8 @@
 package com.ma.volvo;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.StringReader;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
@@ -9,17 +11,22 @@ import javax.xml.bind.Unmarshaller;
 
 public class XmlUnmarshaller {
 
+    private String file_name = "minxml2.xml";
     private File file = new File("minxml2.xml");
     private JAXBContext jaxbContext;
 	private  InteriorResponse interiorResponse = null;
 	private long uniqeIndexErrorCode = 23000l; 
+
+    BufferedReader rd = null;
+    StringReader srd = null;
+    String str = "";
 
     
     public XmlUnmarshaller() {
 
     }
     
-    public void UnmarshalXml() {
+    public void UnmarshalXml(File file) {
         try {
             jaxbContext = JAXBContext.newInstance(InteriorResponse.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();

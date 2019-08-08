@@ -1,14 +1,13 @@
 package com.ma.volvo;
 
-import java.util.ArrayList;
-
 public class TestApp {
 	
+    private static String file_name = "minxml2.xml";
     private static XmlUnmarshaller xmlUnmarshaller = new XmlUnmarshaller();
 	private static InteriorResponse interiorResponse;
     private static DatabaseManager databaseManager = new DatabaseManager();
 	static long uniqeIndexErrorCode = 23000l; 
-    static ArrayList<String> data = null;;
+    static FetaturesOptions data = null;;
     static String pno12 = "ABCDEEX";
     static long str_week_from = 202017;
     static long str_week_to = 202035;
@@ -17,14 +16,14 @@ public class TestApp {
 
 	public static void main(String[] args) {
         // xmlUnmarshaller = new XmlUnmarshaller();
-		xmlUnmarshaller.UnmarshalXml();
+        xmlUnmarshaller.UnmarshalXml(file_name);
         interiorResponse = xmlUnmarshaller.getInteriorResponse();
-        insertIntoDB();
-        data = getDataByPno12(pno12);
+        // insertIntoDB();
+        // data = getDataByPno12(pno12);
         // data = getDataByAll(pno12, str_week_from, str_week_to, color, upholstery);
 	}
 	
-    static ArrayList<String> getDataByPno12(String pno12) {
+    static FetaturesOptions getDataByPno12(String pno12) {
         try {
             data = databaseManager.getDataByPno12(pno12);
     	}catch (Exception e) {
@@ -33,7 +32,7 @@ public class TestApp {
         return data;
 	}
 	
-    static ArrayList<String> getDataByAll(String pno12, long str_week_from, long str_week_to, String color, String upholstery) {
+    static FetaturesOptions getDataByAll(String pno12, long str_week_from, long str_week_to, String color, String upholstery) {
         try {
             data = databaseManager.getDataByAll(pno12, str_week_from, str_week_to, color, upholstery);
         } catch (Exception e) {
